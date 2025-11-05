@@ -1,0 +1,32 @@
+name: Keep GitHub Activity Green
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # 03:00 UTC daily (11:00 UTC+08)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  green-activity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make activity update
+        run: |
+          bash scripts/update-activity.sh
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore: keep activity green $(date -u +'%Y-%m-%d')"
+            git push
+          else
+            echo "No changes to commit"
+          fi
