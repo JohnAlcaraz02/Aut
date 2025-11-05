@@ -15,14 +15,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Randomize run time
+        env:
+          JITTER_MAX_SECONDS: 1800
+        run: |
+          JITTER=$(( RANDOM % JITTER_MAX_SECONDS ))
+          echo "Sleeping for $JITTER seconds to randomize commit time..."
+          sleep "$JITTER"
+
       - name: Make activity update
         run: |
           bash scripts/update-activity.sh
 
       - name: Commit and push if changed
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           if [ -n "$(git status --porcelain)" ]; then
             git add -A
             git commit -m "chore: keep activity green $(date -u +'%Y-%m-%d')"
